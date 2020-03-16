@@ -20,11 +20,11 @@ mongoose.connect(process.env.DB, {useNewUrlParser: true, useUnifiedTopology: tru
     console.log('Connected to DB')
 );
 
+
 // Make our app use the body-parser
 express.use(bodyParser.json());
 
 // Import Routes
 // Middlewares
 const postRoute = require('./routes/product');
-
 express.use('/Products', postRoute);
