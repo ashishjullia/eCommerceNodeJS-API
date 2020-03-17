@@ -5,7 +5,7 @@ const router = express.Router();
 const Product = require('../models/Product');
 
 
-// GET all products
+// GET all Products
 router.get('/', async (req, res) => {
     try {
         const allProducts = await Product.find();
@@ -79,6 +79,7 @@ router.patch('/:productId', async(req, res) => {
             quantity: req.body.quantity
         }
     });
+    res.json(updateSpecificProduct);
     } catch (err) {
         res.json({message: err});
     }
