@@ -1,12 +1,7 @@
-const express = require('express');
-const router = express.Router();
-
-// Import the "Product" model
-const Product = require('../models/Product');
-
+const Product = require('../models/ProductModel');
 
 // GET all Products
-router.get('/', async (req, res) => {
+exports.getAllProducts = async (req, res) => {
     try {
         const allProducts = await Product.find();
         res.json(allProducts);
@@ -15,11 +10,10 @@ router.get('/', async (req, res) => {
             message: err
         });
     }
-});
+};
 
-// POST a product
-router.post('/', async (req, res) => {
-    
+// POST a single product
+exports.postSingleProduct = async (req, res) => {
     // creating a new product from the data being sent via a post request
     const product = new Product({
         title: req.body.title,
@@ -41,20 +35,20 @@ router.post('/', async (req, res) => {
         });
     }
     console.log("Product has been created.");
-});
+};
 
 // GET a specific product
-router.get('/:productId', async(req, res) => {
+exports.getSpecificProduct = async(req, res) => {
     try {
         const getSpecificProduct = await Product.findById(req.params.productId);
         res.json(getSpecificProduct);
     } catch (err) {
         res.json({message: err});
     }
-});
+}
 
 // DELETE Or REMOVE a specific product
-router.delete('/:productId', async(req, res) => {
+exports.removeSpecificProduct = async(req, res) => {
     try {
         const removeSpecificProduct = await Product.remove({
             __id: req.params.productId
@@ -63,10 +57,10 @@ router.delete('/:productId', async(req, res) => {
     } catch (err) {
         res.json({message: err});
     }
-});
+}
 
 // UPDATE Or MODIFY a specific product's data
-router.patch('/:productId', async(req, res) => {
+exports.updateSpecificProduct = async(req, res) => {
     try {
     const updateSpecificProduct = await Product.updateOne(
         {__id: req.params.productId},
@@ -83,7 +77,4 @@ router.patch('/:productId', async(req, res) => {
     } catch (err) {
         res.json({message: err});
     }
-});
-
-// Export
-module.exports = router;
+}

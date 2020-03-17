@@ -1,6 +1,6 @@
 const http = require('http');
 const bodyParser = require('body-parser');
-const product = require('./models/Product.js');
+const product = require('./models/ProductModel.js');
 const mongoose = require('mongoose');
 require('dotenv/config');
 
@@ -26,5 +26,5 @@ express.use(bodyParser.json());
 
 // Import Routes
 // Middlewares
-const postRoute = require('./routes/product');
+const postRoute = require('./routes/productRoute');
 express.use('/Products', postRoute);
