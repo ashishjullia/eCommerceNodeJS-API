@@ -162,3 +162,26 @@ exports.getAllUsers = async (req, res, next) => {
         return next(error);
     }
 };
+
+// GET a specific user
+exports.getSpecificUser = async (req, res, next) => {
+    try {
+        const getSpecificUser = await User.findById(req.params.userId);
+        res.json(getSpecificUser);
+    } catch (err) {
+        const error = new HttpError('Sorry! No users found! Try creating one.', 500);
+        return next(error);
+    }
+};
+
+// DELETE Or REMOVE a specific user
+exports.removeSpecificUser = async (req, res) => {
+    try {
+        const removeSpecificUser = await User.remove({
+            _id: req.params.userId
+        });
+        res.json(removeSpecificUser);
+    } catch (err) {
+        res.json(err);
+    }
+};
