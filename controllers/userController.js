@@ -147,3 +147,18 @@ exports.logIn = async (req, res, next) => {
         message: "Logged in",
     });
 };
+
+// GET all Users
+exports.getAllUsers = async (req, res, next) => {
+    let allUsers;
+    try {
+        allUsers = await User.find();
+        if (!allUsers.isEmpty) {
+            res.json({ "users": allUsers });
+        }
+    } catch (err) {
+        // res.json({ message: "No user found json" }); => return in "json"
+        const error = new HttpError('No users found!', 500);
+        return next(error);
+    }
+};
