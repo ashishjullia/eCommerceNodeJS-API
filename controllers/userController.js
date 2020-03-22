@@ -82,3 +82,68 @@ exports.signUp = async (req, res, next) => {
         token: token
     });
 };
+
+// USER login
+exports.logIn = async (req, res, next) => {
+    // Validating the data before anything else
+    const errors = validationResult(req);
+    
+    if (!errors.isEmpty) {
+        return next(
+            new HttpError('Invalid inputs, please provide correct data!', 422)
+        );
+    }
+
+    const { email, password } = req.body;
+
+    // Step 1: grab the email/user from the database
+    // Check whether user is already registered or not
+    let userExists;
+    try {
+        userExists = await User.findOne({ email: email });
+    } catch (err) {
+        const error = new HttpError('Logging in failed, try again later!', 500);
+        // important to return from here.
+        return next(error);         
+    }
+    
+    // Step 2: compare its email and password with the passed/fetched
+    if (!userExists) {
+        const error = new HttpError('Invalid Credentials, logging in failed!', 401);
+        return next(error);
+    }
+    
+    let validPassword = false;
+    try {
+        validPassword = await bcrypt.compare(password, userExists.password);
+    } catch (err) {
+        const error = new HttpError('Cannot log in, please check credentials!', 500);
+        return next(error);
+    }
+    
+    if (!validPassword) {
+        const error = new HttpError('Invalid Credentials, logging in failed!', 401);
+        return next(error);
+    }
+
+    // if all the upper validations are valid, only then we'll generate and give token to this user
+    // Generate toke, make sure to use the same "secret" used above in "signup"
+    let token;
+    try {
+        session = req.session;
+        token = jsonwebtoken.sign(
+            {userId: userExists.id}, 
+            'secret', 
+            {expiresIn: '1h'});
+    } catch (err) {
+        const error = err;
+        return next(error);
+    } 
+    
+    res.json({
+        userId: userExists.id,
+        email: userExists.email,
+        token: token,
+        message: "Logged in",
+    });
+};
