@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
-
-// Import the "User" model
 const users_controllers = require('../controllers/userController');
+
+const { check } = require('express-validator');
+
+// GET all Users
+router.get('/', users_controllers.getAllUsers);
 
 // CREATE a user
 router.post('/signup',
@@ -22,6 +25,9 @@ router.post('/login',
         check('password').not().isEmpty()
     ],
     users_controllers.logIn);
+
+// USER logout
+router.post('/logout', users_controllers.logOut);
 
 // GET a specific user
 router.get('/:userId', users_controllers.getSpecificUser);
