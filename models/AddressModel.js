@@ -23,6 +23,10 @@ let addressSchema = new Schema({
         required: true,
         min: 6,
         max: 6
+    },
+    country: {
+        type: String,
+        required: true
     }
 });
 
