@@ -32,6 +32,7 @@ const userRoute = require('./routes/userRoute');
 const productRoute = require('./routes/productRoute');
 const cartRoute = require('./routes/cartRoute');
 const addressRoute = require('./routes/addressRoute');
+const checkoutRoute = require('./routes/checkoutRoute');
 
 express.use(session({
     secret: "secret",
@@ -43,3 +44,4 @@ express.use('/Users', userRoute);
 express.use('/Products', productRoute);
 express.use('/Cart', cartRoute);
 express.use('/Address', addressRoute);
+express.use('/Checkout', checkoutRoute);
