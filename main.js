@@ -17,7 +17,7 @@ server.listen(8081, '0.0.0.0', function() {
 });
 
 // Create a database connection
-mongoose.connect(process.env.DB, {useNewUrlParser: true, useUnifiedTopology: true }, () => 
+mongoose.connect(process.env.DB, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }, () => 
     console.log('Connected to DB')
 );
 

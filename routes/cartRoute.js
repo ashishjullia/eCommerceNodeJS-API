@@ -3,8 +3,6 @@ const router = express.Router();
 
 const cart_controllers = require('../controllers/cartController');
 
-const auth = require('../middleware/auth');
-
 const { check } = require('express-validator');
 
 // GET current cart's all contents
