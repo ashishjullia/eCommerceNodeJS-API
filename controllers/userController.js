@@ -148,6 +148,17 @@ exports.logIn = async (req, res, next) => {
     });
 };
 
+// USER LogOut
+exports.logOut = async (req, res, next) => {
+    try {
+        req.session.destroy();
+    } catch (err) {
+        const error = new HttpError ('Unable to destroy session.', 422);
+        return next(error);
+    }
+    res.json({ message: "logout" });
+}
+
 // GET all Users
 exports.getAllUsers = async (req, res, next) => {
     let allUsers;
