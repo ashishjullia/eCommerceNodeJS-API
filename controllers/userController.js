@@ -18,7 +18,7 @@ exports.signUp = async (req, res, next) => {
         );
     }
 
-    const { id, firstname, lastname, email, password } = req.body;
+    const { firstname, lastname, email, password } = req.body;
 
     // Check whether user is already registered or not
     let userExists;
@@ -85,10 +85,18 @@ exports.signUp = async (req, res, next) => {
 
 // USER login
 exports.logIn = async (req, res, next) => {
+
+    sess = req.session;
+    if (sess != undefined && sess.loggedIn != undefined) {
+        return next(
+            new HttpError('A user is already logged in.', 422)
+        );
+    }
+
     // Validating the data before anything else
     const errors = validationResult(req);
-    
-    if (!errors.isEmpty) {
+
+    if (!errors.isEmpty()) {
         return next(
             new HttpError('Invalid inputs, please provide correct data!', 422)
         );
@@ -127,27 +135,33 @@ exports.logIn = async (req, res, next) => {
     }
 
     // if all the upper validations are valid, only then we'll generate and give token to this user
+
     // Generate toke, make sure to use the same "secret" used above in "signup"
     let token;
     try {
-        session = req.session;
         token = jsonwebtoken.sign(
             {userId: userExists.id}, 
             'secret', 
             {expiresIn: '1h'});
+        if (sess.loggedIn === undefined) {
+            sess.loggedIn = true;
+            sess.email = userExists.email;
+            sess.userId = userExists.id;
+            sess.token = token; 
+        }
     } catch (err) {
-        const error = err;
+        const error = new HttpError('Logging in failed, at this time, try again later!', 500);
         return next(error);
     } 
     
+    res.append('token', token);
     res.json({
         userId: userExists.id,
         email: userExists.email,
-        token: token,
         message: "Logged in",
+        ses: sess
     });
 };
-
 // USER LogOut
 exports.logOut = async (req, res, next) => {
     try {
