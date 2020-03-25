@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
-const checkout_controllers = require('../controllers/cartController');
+const checkout_controllers = require('../controllers/checkoutController');
 
 const { check } = require('express-validator');
 
 
-router.post('/'
+router.post('/',
     [
         check('addressId').not().isEmpty()
     ]

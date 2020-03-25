@@ -5,7 +5,7 @@ const comment_controllers = require('../controllers/commentController');
 
 const { check } = require('express-validator');
 
-router.get('/', comment_controllers.comments);
+//router.get('/', comment_controllers.comment);
 
 // Export
 module.exports = router;
