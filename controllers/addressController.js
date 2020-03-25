@@ -7,11 +7,29 @@ const { validationResult } = require('express-validator');
 // GET all addresses
 exports.getAllAddresses = async (req, res, next) => {
     let allAddresses;
+    const { token, userId } = req.session;
     try {
-        allAddresses = await Address.find();
-        if (!allAddresses.isEmpty) {
-            res.json({ "Addresses": allAddresses });
+        // check if the user is logged in
+        if (token) {
+            allAddresses = await Address.find({ userId: userId });
+            if (!allAddresses.isEmpty) {
+                res.json({ "Addresses": allAddresses });
+            }
         }
+        // else {
+        //     //if the user is not logged in 
+        //     //check if there is any address in the session for current logged in user
+        //     if (req.session != undefined && req.session != null) {
+        //         res.json( { "Address": {
+        //             userId: userId,
+        //             street: street,
+        //             ciy: city,
+        //             province: province,
+        //             postalCode: postalCode,
+        //             country: country
+        //         } });
+        //     }
+        // }
     } catch (err) {
         const error = new HttpError('No addresses found!', 500);
         return next(error);
@@ -28,7 +46,7 @@ exports.addAddress = async (req, res, next) => {
         );
     }
 
-    const { addressId, street, city, province, postalCode, country } = req.body;
+    const { street, city, province, postalCode, country } = req.body;
 
     const { token, userId } = req.session;
 
@@ -36,7 +54,13 @@ exports.addAddress = async (req, res, next) => {
         // Check whether an address for a user already exists or not.
         let addressExists;
         try {
-            addressExists = await Address.findOne({ addressId: addressId });
+            addressExists = await Address.findOne({ 
+                userId: userId.toLowerCase(), 
+                street: street.toLowerCase(), 
+                city: city.toLowerCase(), 
+                province: province.toLowerCase(), 
+                postalCode: postalCode.toLowerCase(), 
+                country: country.toLowerCase() });
         } catch (err) {
             const error = new HttpError('unable to add address at this moment.', 500);
             return next(error);
@@ -49,26 +73,33 @@ exports.addAddress = async (req, res, next) => {
 
         // creating a new address 
         const newAddress = new Address({
-            addressId: addressId,
-            userId: userId,
-            street: street,
-            city: city,
-            province: province,
-            postalCode: postalCode,
-            country: country
+            userId: userId.toLowerCase(),
+            street: street.toLowerCase(),
+            city: city.toLowerCase(),
+            province: province.toLowerCase(),
+            postalCode: postalCode.toLowerCase(),
+            country: country.toLowerCase()
         });
 
         try {
             const savedNewAddress = await newAddress.save();
-            res.json(201).json(savedNewAddress);
+            res.status(201).json({result:true,message:"Address added!"});
         } catch (err) {
             res.json({
                 message: err
             });
         }
     }
-    else {
-        const error = new HttpError('Cannot add address, because the user is not logged in.', 422);
-        res.json({ message: error });
-    }
+    // else {
+    //     if (req.session != undefined && req.session != null) {
+    //         // if (req.session.Address === undefined) {
+    //         //     req.session.Address = [];
+    //             req.session.street = street;
+    //             req.session.city = city;
+    //             req.session.province = province;
+    //             req.session.postalCode = postalCode;
+    //             req.session.country = country;
+    //         // }
+    //     }
+    // }
 };

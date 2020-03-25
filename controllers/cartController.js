@@ -6,12 +6,26 @@ const HttpError = require('../models/HttpErrorModel');
 
 exports.getAllCartProducts = async (req, res, next) => {
     let allCartContents;
+    const { token, userId } = req.session;
     try {
-        allCartContents = await Cart.find();
-        if (!allCartContents.isEmpty) {
-            res.json({ "Cart": allCartContents });
+        //check if user is logged in
+        if(token){
+            //get the cart products of the user who is logged in
+            allCartContents = await Cart.find({userId : userId});
+            if (!allCartContents.isEmpty) {
+                res.json({ "Cart": allCartContents });
+            }
         }
-    } catch (err) {
+        else{//if the user is not logged in 
+            //check if there is any product in the cart for the session
+            if(req.session.cartProducts != undefined && req.session.cartProducts.length > 0){
+                res.json({"Cart": req.session.cartProducts});
+                return;
+            }
+            //no products were there in the cart
+            res.json({ result:false, message:"No products in the cart!" });
+        }
+    } catch (err) { 
         const error = new HttpError('OOPS, no products in your cart, try adding few.', 500);
         return next(error);
     }
@@ -32,11 +46,12 @@ exports.addProductToCart = async (req, res, next) => {
     let productExistsInCart;
     try {
         if (token) {
-        // checking whether product for a user exists in the database or not
-        productExistsInCart = await Cart.findOne({ productId: productId, userId: userId });
-            var quant = productExistsInCart.quantity + quantity;
+            // checking whether product for a user exists in the database or not
+            productExistsInCart = await Cart.findOne({ productId: productId, userId: userId });
             // if product was found then update the quantity in the database
             if (productExistsInCart) {
+                //add up the quantity to the previous value
+                var quant = productExistsInCart.quantity + quantity;
                 Cart.updateOne(
                 {   productId : productId,
                     userId : userId
