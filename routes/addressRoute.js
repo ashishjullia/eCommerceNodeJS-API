@@ -11,14 +11,14 @@ router.get('/', address_controllers.getAllAddresses);
 // ADD an address
 router.post('/',
     [
-        check('userId').not().isEmpty(),
+        check('addressId').not().isEmpty(),
         check('street').not().isEmpty(),
         check('city').not().isEmpty(),
         check('province').not().isEmpty(),
         check('postalCode').not().isEmpty(),
         check('country').not().isEmpty()
     ],
-    address_controllers.addProductToCart);
+    address_controllers.addAddress);
 
 // Export
 module.exports = router;

@@ -8,7 +8,7 @@ exports.getAllCartProducts = async (req, res, next) => {
     let allCartContents;
     try {
         allCartContents = await Cart.find();
-        if (!allCartContents.isEmpty()) {
+        if (!allCartContents.isEmpty) {
             res.json({ "Cart": allCartContents });
         }
     } catch (err) {
