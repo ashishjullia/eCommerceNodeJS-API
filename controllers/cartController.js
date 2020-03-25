@@ -31,12 +31,12 @@ exports.addProductToCart = async (req, res, next) => {
 
     let productExistsInCart;
     try {
+        if (token) {
         // checking whether product for a user exists in the database or not
-        productExistsInCart = await Cart.findOne({ productId: productId, userId: userId });    
-        if (productExistsInCart) {
+        productExistsInCart = await Cart.findOne({ productId: productId, userId: userId });
             var quant = productExistsInCart.quantity + quantity;
             // if product was found then update the quantity in the database
-            if (token) {
+            if (productExistsInCart) {
                 Cart.updateOne(
                 {   productId : productId,
                     userId : userId
@@ -51,10 +51,8 @@ exports.addProductToCart = async (req, res, next) => {
                     else
                         res.status(201).json({result:true,message:"Product quantity updated in the cart"});
                 });
-                
             }
-        }
-        else {
+            else {
             const newProductForCart = new Cart({
                 productId: productId,
                 userId: userId,
@@ -73,6 +71,32 @@ exports.addProductToCart = async (req, res, next) => {
                     message: err.message
                 });
             }
+        }
+    }
+    else {//if the user is not logged in create cart session to add products
+        if (req.session.cartProducts === undefined) {
+            req.session.cartProducts = [];
+        }
+        //check if the cart already contains the product and update the quantity
+        for(var i = 0; i < req.session.cartProducts.length ; i++){
+            if(req.session.cartProducts[i].productId == productId){
+                req.session.cartProducts[i].quantity =  req.session.cartProducts[i].quantity + quantity;
+                
+                console.log(req.session.cartProducts);
+                res.status(201).json({result:true,message:"Product quantity updated in the cart"});
+                return;
+            }
+        }
+        //Add new product to the cart session if not already added
+        var cartProduct = new Cart({
+            productId : productId,
+            userId : 0,
+            quantity : quantity
+        });
+
+        req.session.cartProducts.push(cartProduct);
+        res.status(201).json({result:true,message:"Product added to the cart"});
+        console.log(req.session.cartProducts);
         }
     } catch (err) {
         res.json({ message: err.message });
