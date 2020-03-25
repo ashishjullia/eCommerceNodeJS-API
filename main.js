@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const product = require('./models/ProductModel.js');
 const mongoose = require('mongoose');
 require('dotenv/config');
+const session = require('express-session');
 
 // Express prepared
 const expressInstance = require('express');
@@ -20,11 +21,23 @@ mongoose.connect(process.env.DB, {useNewUrlParser: true, useUnifiedTopology: tru
     console.log('Connected to DB')
 );
 
-
 // Make our app use the body-parser
 express.use(bodyParser.json());
 
-// Import Routes
+
+// Import Routes & register them as "middleware"
 // Middlewares
-const postRoute = require('./routes/productRoute');
-express.use('/Products', postRoute);
+
+const userRoute = require('./routes/userRoute');
+const productRoute = require('./routes/productRoute');
+const cartRoute = require('./routes/cartRoute');
+
+express.use(session({
+    secret: "secret",
+    saveUninitialized: false,
+    resave: true
+}))
+
+express.use('/Users', userRoute);
+express.use('/Products', productRoute);
+express.use('/Cart', cartRoute);

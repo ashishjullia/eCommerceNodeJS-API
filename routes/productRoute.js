@@ -15,7 +15,8 @@ router.post('/',
         check('pricing').not().isEmpty(),
         check('shipping').not().isEmpty(),
         check('quantity').not().isEmpty()
-    ], products_controller.addProduct);
+    ], 
+    products_controller.addProduct);
 
 router.get('/:productId', products_controller.getSpecificProductFromCart);
 
