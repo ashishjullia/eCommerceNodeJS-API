@@ -6,7 +6,11 @@ const checkout_controllers = require('../controllers/cartController');
 const { check } = require('express-validator');
 
 
-router.post('/', checkout_controllers.checkout);
+router.post('/'
+    [
+        check('addressId').not().isEmpty()
+    ]
+    , checkout_controllers.checkout);
 
 
 // Export
