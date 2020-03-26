@@ -12,8 +12,11 @@ exports.getAllCartProducts = async (req, res, next) => {
         if(token){
             //get the cart products of the user who is logged in
             allCartContents = await Cart.find({userId : userId});
-            if (!allCartContents.isEmpty) {
-                res.json({ "Cart": allCartContents });
+            if (allCartContents.length > 0) {
+                res.json({ result : true,"Cart": allCartContents });
+            }
+            else{
+                res.json({ result : false,message:"No products in the cart!" });
             }
         }
         else{//if the user is not logged in 

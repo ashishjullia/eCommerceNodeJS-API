@@ -12,45 +12,89 @@ const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/HttpErrorModel');
 
+const OutOfStock = require('../models/OutOfStockModel');
 
 exports.checkout = async (req, res, next) => {
     const errors = validationResult(req);
-
-    const { addressId } = req.body;
-    let allCartcontents, username, product, address;
+    
     const { token, userId } = req.session;
+
     try {
+        // if the user is logged in
         if (token) {
-            username = await User.find(
-                { userId: userId },
-                { fields: {
-                    email
-                } }  );
-            allCartcontents = await Cart.find({ userId: userId });
-            product = await Product.find({ _id: allCartContents.productId });
-            address = await Address.find({ addressId: addressId });
-            if (allCartcontents.isEmpty) {
-                res.json({ message: "Your cart is empty, cannot checkout!" });
-            } 
-            else {
-                const newPurchase = new PurchaseHistory({
-                    username: username,
-                    productId: allCartcontents.productId,
-                    quantity: allCartcontents.quantity,
-                    price: product.quantity,
-                    street: address.street,
-                    city: address.city,
-                    province: address.province,
-                    postalCode: address.postalCode,
-                    country: address.country
-                })
+                
+            const { addressId } = req.body;
+            //get the user address
+            const address = await Address.findOne({ _id: addressId });
+            //check if address and checkoutitems have been initialized earlier
+            if(req.session.address === undefined){
+                req.session.address = {};
+            }
+            //add address to the session for future use
+            req.session.address = address;
+
+            const cartProducts =  await Cart.find({ userId: userId });                    
+            checkOutItems(cartProducts,req,res,next);
+        } 
+        else {
+            if (req.session != undefined && req.session.cartProducts != undefined && req.session.cartProducts.length > 0) {
+                res.status(422).json({result:false,message :"No user logged in,Go for anonymous buy! "});
+                return;
+            }
+            else{
+                res.status(422).json({result:false,message :"No products for current session "});
+                return;
             }
         }
-        else {
-            res.json({ message: "Not logged in." });
-        }
     } catch (err) {
-        next();
+        res.json({ message: err.message });
     }
-
 }; 
+
+async function checkOutItems(cartProducts,req,res,next) {
+    var arrayProductIds = [];
+    var arrayOutOfStock = [];
+    //loop over products to create product Ids array 
+    for (i = 0; i < cartProducts.length; i++) {
+        arrayProductIds.push(cartProducts[i].productId);
+    }
+    //get the products' details from the table using the ids array
+    const products = await Product.find({ _id: {$in:  arrayProductIds}});        
+
+    for (i = 0; i < cartProducts.length; i ++) {
+        for (j = 0; j < products.length; j ++) {
+            //check for the product Id to match the quantity
+            if(cartProducts[i].productId == products[j]._id) {
+                //if available quantity is less than cart quantity add it to the out of stock products
+                if (cartProducts[i].quantity > products[j].quantity)
+                {
+                    var outOfStock = new OutOfStock(
+                        products[j]._id,
+                        cartProducts[i].quantity,
+                        products[j].quantity
+                    );
+                    arrayOutOfStock.push(outOfStock);
+                }
+            }
+        }
+    }
+    //check if any cart products was out of stock
+    if(arrayOutOfStock.length > 0){
+        res.status(422).json({result:false,"OutOfStockProducts" : arrayOutOfStock});
+        return;
+    }
+    else{
+        //if in stock then proceed to confirm buy option
+        if(req.session.checkOutItems === undefined){
+            req.session.checkOutItems = {};
+        }
+        //add address and checkoutItems to the session for future use
+        //while confirming / after the payment gateway has been called
+        //this is to be done to update the purchase history table and cart table
+        req.session.checkOutItems = cartProducts;
+        
+        console.log(req.session);
+        res.status(422).json({result:true,message :"Proceed to confirm buy"});
+        return;
+    }
+}

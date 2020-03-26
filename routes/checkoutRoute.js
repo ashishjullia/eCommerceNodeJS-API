@@ -12,6 +12,12 @@ router.post('/',
     ]
     , checkout_controllers.checkout);
 
+router.post('/anonymous',
+    [
+        
+    ]
+    , checkout_controllers.anonymousCheckout);
+
 
 // Export
 module.exports = router;
