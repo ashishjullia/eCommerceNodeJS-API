@@ -136,7 +136,7 @@ exports.logIn = async (req, res, next) => {
 
     // if all the upper validations are valid, only then we'll generate and give token to this user
 
-    // Generate toke, make sure to use the same "secret" used above in "signup"
+    // Generate token, make sure to use the same "secret" used above in "signup"
     let token;
     try {
         token = jsonwebtoken.sign(

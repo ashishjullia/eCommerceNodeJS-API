@@ -14,7 +14,12 @@ router.post('/',
 
 router.post('/anonymous',
     [
-        
+        check('email').not().isEmpty().isEmail().normalizeEmail(),
+        check('street').not().isEmpty(),
+        check('city').not().isEmpty(),
+        check('province').not().isEmpty(),
+        check('postalCode').not().isEmpty(),
+        check('country').not().isEmpty()
     ]
     , checkout_controllers.anonymousCheckout);
 

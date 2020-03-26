@@ -38,6 +38,8 @@ exports.checkout = async (req, res, next) => {
         } 
         else {
             if (req.session != undefined && req.session.cartProducts != undefined && req.session.cartProducts.length > 0) {
+                const cartProducts = req.session.cartProducts;
+                checkOutItems(cartProducts, req, res, next);
                 res.status(422).json({result:false,message :"No user logged in,Go for anonymous buy! "});
                 return;
             }
@@ -50,6 +52,36 @@ exports.checkout = async (req, res, next) => {
         res.json({ message: err.message });
     }
 }; 
+
+exports.anonymousCheckout = async (req, res, next) => {
+    const errors = validationResult(req);
+    
+    const { email, street, city, province, postalCode, country } = req.body;
+    
+    if (req.session != undefined) {
+        try {
+            console.log(req.session);
+            if (req.session.cartProducts != undefined && req.session.cartProducts.length > 0) {
+                console.log("hello")
+                
+                req.session.email = email;
+                var anonymous = new Address( {
+                    userId: "",
+                    street: street, 
+                    city: city, 
+                    province: province, 
+                    postalCode: postalCode, 
+                    country: country });
+
+                req.session.address = anonymous;
+                // console.log(anonymous);
+                // res.json({ message: anonymous });
+            } 
+        }   catch (err) {
+                res.json({ message: err.message });
+            }
+        }
+};
 
 async function checkOutItems(cartProducts,req,res,next) {
     var arrayProductIds = [];
