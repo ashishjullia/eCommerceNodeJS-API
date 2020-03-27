@@ -75,7 +75,7 @@ exports.anonymousCheckout = async (req, res, next) => {
 
                 req.session.address = anonymous;
                 // console.log(anonymous);
-                // res.json({ message: anonymous });
+                res.json({ result: true, message: "Address added!" });
             } 
         }   catch (err) {
                 res.json({ message: err.message });
