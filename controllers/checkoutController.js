@@ -98,11 +98,11 @@ async function checkOutItems(cartProducts,req,res,next) {
             //check for the product Id to match the quantity
             if(cartProducts[i].productId == products[j]._id) {
                 //if available quantity is less than cart quantity add it to the out of stock products
-                if (cartProducts[i].quantity > products[j].quantity)
+                if (cartProducts[i].cartQuantity > products[j].quantity)
                 {
                     var outOfStock = new OutOfStock(
                         products[j]._id,
-                        cartProducts[i].quantity,
+                        cartProducts[i].cartQuantity,
                         products[j].quantity
                     );
                     arrayOutOfStock.push(outOfStock);

@@ -11,9 +11,16 @@ exports.confirmBuy = async (req, res, next) => {
     const { userId, token } =  req.session;
 
     if (token) {
-        const deletedCartProducts = await Cart.delete({ userId: userId });
+        const { productId, cartQuantity } = await Cart.find({ userId: userId });
+        var cartQuant = cartQuantity;
 
-        console.log(deletedCartProducts);
+        // Decrease product quantity in database
+        const productQuantityDecrease = await Product.updateOne(
+            { productId: productId },
+            { $set: {
+                quantity: quantity - quant
+            }
+        });
 
         // const { productId } 
 

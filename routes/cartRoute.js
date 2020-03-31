@@ -14,7 +14,7 @@ router.get('/', cart_controllers.getAllCartProducts);
 router.post('/',
     [
         check('productId').not().isEmpty(),
-        check('quantity').not().isEmpty()
+        check('cartQuantity').not().isEmpty()
     ],
     cart_controllers.addProductToCart);
 

@@ -165,12 +165,17 @@ exports.logIn = async (req, res, next) => {
 // USER LogOut
 exports.logOut = async (req, res, next) => {
     try {
-        req.session.destroy();
+        if (req.session.loggedIn !== undefined ) {
+            req.session.destroy();
+            res.json({ message: "logout" });
+        }
+        else {
+            res.json({ message: "No user is logged in." });
+        }
     } catch (err) {
         const error = new HttpError ('Unable to destroy session.', 422);
         return next(error);
     }
-    res.json({ message: "logout" });
 }
 
 // GET all Users

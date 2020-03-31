@@ -42,7 +42,7 @@ exports.addProductToCart = async (req, res, next) => {
         );
     }
 
-    const { productId, quantity } = req.body;
+    const { productId, cartQuantity } = req.body;
 
     const { token, userId } = req.session;
 
@@ -54,13 +54,13 @@ exports.addProductToCart = async (req, res, next) => {
             // if product was found then update the quantity in the database
             if (productExistsInCart) {
                 //add up the quantity to the previous value
-                var quant = productExistsInCart.quantity + quantity;
+                var quant = productExistsInCart.cartQuantity + cartQuantity;
                 Cart.updateOne(
                 {   productId : productId,
                     userId : userId
                 },
                 { $set : {
-                    quantity : quant
+                    cartQuantity : quant
                     }
                 },
                 function(err,product){
@@ -74,7 +74,7 @@ exports.addProductToCart = async (req, res, next) => {
             const newProductForCart = new Cart({
                 productId: productId,
                 userId: userId,
-                quantity: quantity
+                cartQuantity: cartQuantity
             });
             // save the data to the Cart model/collection
             try {
@@ -98,7 +98,7 @@ exports.addProductToCart = async (req, res, next) => {
         //check if the cart already contains the product and update the quantity
         for(var i = 0; i < req.session.cartProducts.length ; i++){
             if(req.session.cartProducts[i].productId == productId){
-                req.session.cartProducts[i].quantity =  req.session.cartProducts[i].quantity + quantity;
+                req.session.cartProducts[i].cartQuantity =  req.session.cartProducts[i].cartQuantity + cartQuantity;
                 
                 console.log(req.session.cartProducts);
                 res.status(201).json({result:true,message:"Product quantity updated in the cart"});
@@ -109,7 +109,7 @@ exports.addProductToCart = async (req, res, next) => {
         var cartProduct = new Cart({
             productId : productId,
             userId : 0,
-            quantity : quantity
+            cartQuantity : cartQuantity
         });
 
         req.session.cartProducts.push(cartProduct);
