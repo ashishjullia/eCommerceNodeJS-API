@@ -16,10 +16,10 @@ exports.confirmBuy = async (req, res, next) => {
 
     try {
         if (token) {
-            confirmBuyProduct(email, checkOutItems, address, req, res, next);
+            confirmBuyProduct(email, checkOutItems, address, req, res, next,token);
         }
         else {
-            confirmBuyProduct(email, checkOutItems, address, req, res, next);
+            confirmBuyProduct(email, checkOutItems, address, req, res, next,token);
         }
     } catch (err) {
         res.json({ return: false,
@@ -28,55 +28,55 @@ exports.confirmBuy = async (req, res, next) => {
 };
 
 
-async function confirmBuyProduct(email, checkOutItems, address, req, res, next) { 
-     const cartObject = await Cart.findOne({ userId: email });
-            // // { cartQuantity, productId }
-            const productObject = await Product.findOne({ _id: cartObject.productId });
-            // // { quantity, pricing }
+async function confirmBuyProduct(email,checkOutItems, address, req, res, next,token) { 
+    console.log(checkOutItems);
+    for(var i = 0;i < checkOutItems.length ; i++){
+        const product = await Product.findOne({_id : checkOutItems[i].productId});
+        await Product.updateOne(
+            { _id: checkOutItems[i].productId },
+            { $set: {
+                quantity: product.quantity- checkOutItems[i].cartQuantity
+                }
+            },
+            function(err,product){
+                if(err)
+                    res.json({result:false,message:err});
+                else
+                    console.log("product Quantity updated");
+            });
+    }
+    if(token){
+        // Delete from the cart
+        await Cart.deleteOne({ userId: req.session.userId });
+    }
+    else{
+        //remove products from the session when not logged in
+        req.session.cartProducts = undefined;
+    }
+    // const addressObject = await Address.findOne({ userId: userId });
 
-            // console.log(productObject.quantity);
-            // console.log(cartObject.cartQuantity);
-            // console.log(productObject.pricing);
-            // console.log(cartObject.productId);
+    // Add to the purchase history
+    for(var i = 0; i < checkOutItems.length; i++){
+        const product = await Product.findOne({_id : checkOutItems[i].productId});
+        const updatePurchaseHistory = new Purchase({
+            username: email,
+            productId: checkOutItems[i].productId,
+            quantity: checkOutItems[i].cartQuantity,
+            price: product.pricing,
+            street: address.street,
+            city: address.city,
+            province: address.province,
+            postalCode: address.postalCode,
+            country: address.country
+        });
 
-            if (productObject.quantity > checkOutItems.cartQuantity && checkOutItems.cartQuantity > 0) {
-                await Product.updateOne(
-                    { _id: checkOutItems.productId },
-                    { $set: {
-                        quantity: productObject.quantity - checkOutItems.cartQuantity
-                    }
-                });
+        const purchased = await updatePurchaseHistory.save();
+    }
+    req.session.checkOutItems = undefined;
+    req.session.address = undefined;
 
-                // Delete from the cart
-                await Cart.deleteOne({ userId: userId });
-
-                // const addressObject = await Address.findOne({ userId: userId });
-
-                // Add to the purchase history
-                const updatePurchaseHistory = new Purchase({
-                    username: email,
-                    productId: checkOutItems.productId,
-                    quantity: checkOutItems.cartQuantity,
-                    price: productObject.pricing,
-                    street: address.street,
-                    city: address.city,
-                    province: address.province,
-                    postalCode: address.postalCode,
-                    country: address.country
-                });
-
-                const purchased = await updatePurchaseHistory.save();
-                console.log(purchased);
-                res.json({
-                    return: true,
-                    message: "purchased"
-                });
-                next();
-            } else {
-                res.json({ 
-                    return: false,
-                    message: "Not in stock."
-                });
-                next();
-            }
+    res.json({
+        return: true,
+        message: "Transaction completed, consistency maintained"
+    });
 }
