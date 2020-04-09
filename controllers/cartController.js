@@ -122,7 +122,7 @@ exports.addProductToCart = async (req, res, next) => {
     }
 };
 
-exports.removeProductFromCart = async (res, req, next) => {
+exports.removeProductFromCart = async (req, res, next) => {
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -136,6 +136,7 @@ exports.removeProductFromCart = async (res, req, next) => {
     const { token, userId } = req.session;
 
     if (token) {
+        console.log(req.body);
         // 0  for deleting the complete product cart and 1 for decreasing the quantity by 1
         if (allOrOne === 0) {
             const removeSingleProduct = await Cart.findOneAndDelete({ productId: productId });
@@ -147,7 +148,7 @@ exports.removeProductFromCart = async (res, req, next) => {
         } else if (allOrOne === 1) {
             const productInFocus = await Cart.findOne({ productId: productId });
             var quant = productInFocus.cartQuantity - 1;
-                Cart.updateOne(
+                await Cart.updateOne(
                 {   
                     productId : productId,
                     userId : userId
@@ -155,6 +156,10 @@ exports.removeProductFromCart = async (res, req, next) => {
                 { $set : {
                     cartQuantity : quant
                     }
+                });
+                res.json({
+                    result: true,
+                    message: "Quantity decremented!"
                 });
             next();
         } else {
@@ -164,4 +169,20 @@ exports.removeProductFromCart = async (res, req, next) => {
             });
         }
     }
-}
+    else{
+        //check if the cart already contains the product and update the quantity
+        for(var i = 0; i < req.session.cartProducts.length ; i++){
+            if(req.session.cartProducts[i].productId == productId){
+                if(allOrOne == 1){
+                    req.session.cartProducts[i].cartQuantity =  req.session.cartProducts[i].cartQuantity - 1;
+                }
+                else if(allOrOne == 0){
+                    req.session.cartProducts.splice(i,1);
+                }
+                
+                res.status(201).json({result:true,message:"Product quantity updated in the cart"});
+                return;
+            }
+        }
+    }
+};
