@@ -18,5 +18,12 @@ router.post('/',
     ],
     cart_controllers.addProductToCart);
 
+router.delete('/removeProduct',
+    [
+        check('productId').not().isEmpty(),
+        check('allOrOne').not().isEmpty()
+    ],
+    cart_controllers.removeProductFromCart);
+
 // Export
 module.exports = router;

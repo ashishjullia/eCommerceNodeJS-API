@@ -29,7 +29,7 @@ exports.confirmBuy = async (req, res, next) => {
 
 
 async function confirmBuyProduct(email, checkOutItems, address, req, res, next) { 
-    // const cartObject = await Cart.findOne({ userId: userId });
+     const cartObject = await Cart.findOne({ userId: email });
             // // { cartQuantity, productId }
             const productObject = await Product.findOne({ _id: cartObject.productId });
             // // { quantity, pricing }

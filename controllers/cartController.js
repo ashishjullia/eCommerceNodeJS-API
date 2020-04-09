@@ -121,3 +121,47 @@ exports.addProductToCart = async (req, res, next) => {
         console.log(err.message);
     }
 };
+
+exports.removeProductFromCart = async (res, req, next) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return next(
+            new HttpError('Invalid inputs, please provide correct data!', 422)
+        );
+    }
+
+    const { productId, allOrOne } = req.body;
+
+    const { token, userId } = req.session;
+
+    if (token) {
+        // 0  for deleting the complete product cart and 1 for decreasing the quantity by 1
+        if (allOrOne === 0) {
+            const removeSingleProduct = await Cart.findOneAndDelete({ productId: productId });
+            res.json({
+               result: true,
+               message: removeSingleProduct 
+            });
+            next();
+        } else if (allOrOne === 1) {
+            const productInFocus = await Cart.findOne({ productId: productId });
+            var quant = productInFocus.cartQuantity - 1;
+                Cart.updateOne(
+                {   
+                    productId : productId,
+                    userId : userId
+                },
+                { $set : {
+                    cartQuantity : quant
+                    }
+                });
+            next();
+        } else {
+            res.json({
+                result: false,
+                message: "Invalid Option"
+            });
+        }
+    }
+}
